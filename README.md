@@ -24,3 +24,7 @@
 * npm install
 * quasar dev
 
+
+### Banco de Dados
+* Colocar o nome da base de dados no .env do laravel na var DB_DATABASE
+
