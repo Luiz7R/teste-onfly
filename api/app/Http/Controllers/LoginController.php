@@ -65,13 +65,11 @@ class LoginController extends Controller
         return true;
     }    
 
-    public function getDespesas(Request $request)
+    public function DespesasAll( )
     {
-        if ( Auth::check() )
-        {
-            return 'Sim';
-        }
-        return 'nao';
+        $despesas = Despesas::all();
+
+        return view('Despesas', compact(['despesas']));
     }
 
     public function criarDespesa(Request $request)

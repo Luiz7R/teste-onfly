@@ -79,27 +79,52 @@
                           :columns="columns"
                           row-key="id"
                           class="col"
-                        >
-                          <template v-slot:body-cell-action="props">
-                            <q-td :props="props">
-                              <q-btn
-                                icon="create"
-                                color="primary"
-                                size="sm"
-                                dense
-                                @click="editar(props.row)"
-                              />
-                              <q-btn
-                                icon="delete"
-                                color="negative"
-                                size="sm"
-                                dense
-                                class="q-ml-sm"
-                                @click="deletar(props.row.id)"
-                              />
-                            </q-td>
-                          </template>
+                        > 
+                        <template v-slot:body-cell-anexo="props">                           
+                          <q-td :props="props">
+                            <q-btn
+                              icon="attach_file"
+                              color="positive"
+                              size="sm"
+                              dense
+                              @click="anexo(props.row)"
+                            />
+                          </q-td>
+                        </template>                        
+                        <template v-slot:body-cell-action="props">                           
+                          <q-td :props="props">
+                            <q-btn
+                              icon="create"
+                              color="primary"
+                              size="sm"
+                              dense
+                              @click="editar(props.row)"
+                            />
+                            <q-btn
+                              icon="delete"
+                              color="negative"
+                              size="sm"
+                              dense
+                              class="q-ml-sm"
+                              @click="deletar(props.row.id)"
+                            />
+                          </q-td>
+                        </template>
                         </q-table>
+                        <q-dialog v-model="modalImage">
+                              <q-card style="width: 600px; max-width: 60vw;">
+                                <q-card-section>
+                                      <q-btn round flat dense icon="close" class="float-right" color="grey-8" v-close-popup></q-btn>
+                                </q-card-section>
+                                <q-card-section>
+                                      <div class="text-h7" style="text-align: center;" >Imagem</div>
+                                      <q-card class="my-card" style="margin-top: 2%;">
+                                        <img :src="DespesaAnexo.anexo">
+                                      </q-card>                                      
+                                </q-card-section>                                
+                                <q-separator inset></q-separator>
+                              </q-card>
+                        </q-dialog>                        
                         <q-dialog v-model="show_dialog">
                               <q-card style="width: 600px; max-width: 60vw;">
                                 <q-card-section>
@@ -212,6 +237,7 @@
                                     <q-uploader
                                       style="max-width: 300px"
                                       label="Anexo"
+                                      @add="file_upload"
                                       :factory="uploadFile"
                                       max-files="1"
                                       max-file-size="1048576"
@@ -318,7 +344,7 @@ export default defineComponent({
             name: 'valor',
             label: 'Valor',
             field: 'valor',
-            format: val => `${val.toLocaleString('pt-br', {minimumFractionDigits: 2})}`,
+            format: val => Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val),
             align: 'left',
             sortable: true
           },
@@ -329,12 +355,16 @@ export default defineComponent({
             sortable: true
           }
         ],    
+        selectedFile: '',
+        check_if_document_upload:false,
         model: ref(null),
         show_dialog: false,
+        modalImage: false,
         file_path: null,
         medium: false,
         create_despesa: false,                   
         DespesasEditar: desp,  
+        DespesaAnexo: desp,
         criarConta: false,                  
         secrets: [],
         usuario: [],
@@ -362,7 +392,11 @@ export default defineComponent({
         usuarioLogado: false,
      }
   },
-  methods: {        
+  methods: {  
+      file_selected(file) {
+          this.selectedFile = file[0];
+          this.check_if_document_upload=true
+      },          
       handleLogin () {
           axios.get('http://localhost:8000/sanctum/csrf-cookie').then((res) => {
                 axios.post('http://localhost:8000/api/login', this.formData).then((res) => {
@@ -415,6 +449,15 @@ export default defineComponent({
                 })
           })          
       },       
+      anexo (despesa)
+      {
+          const urlImages = ref('http://localhost:8000/storage/images/')
+
+          this.modalImage = true
+          urlImages.value = 'http://localhost:8000/storage/images/' + despesa.anexo
+          this.DespesaAnexo.anexo = urlImages.value
+          // this.DespesaAnexo.anexo = 'http://localhost:8000/storage/images/' + despesa.anexo
+      },
       editar (despesa) {
         this.show_dialog = true
         this.DespesasEditar.id = despesa.id
@@ -430,16 +473,17 @@ export default defineComponent({
       },  
       uploadFile(files) 
       {
-          this.file_path = files[0]
-          const fileData = new FormData()
-          fileData.file_path = this.file_path.name
-          this.imagePath.anexo = this.file_path.name
+          let fileData = new FormData()
+          //fileData.anexo = this.file_path.name
 
-          axios.get('http://localhost:8000/sanctum/csrf-cookie').then((res) => {
-              const uploadFile = axios.post('http://localhost:8000/api/uploadsFile', this.imagePath).then((res) => {
-                  console.log(res.data)
+          console.log(files[0])
 
-                  this.$q.notify({ type: 'possitive', message: `Imagem Uploaded` })
+          fileData.append('anexo', files[0]);
+
+          axios.get('http://localhost:8000/sanctum/csrf-cookie').then((res) => {               
+              axios.post('http://localhost:8000/api/uploadsFile', fileData, { headers: { 'Content-Type': 'multipart/form-data' } } ).then((res) => {
+                  this.imagePath.anexo = res.data
+                  this.$q.notify({ type: 'positive', message: `Imagem Adicionada` })
               })
           })    
       },
