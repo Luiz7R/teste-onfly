@@ -65,13 +65,6 @@ class LoginController extends Controller
         return true;
     }    
 
-    public function DespesasAll( )
-    {
-        $despesas = Despesas::all();
-
-        return view('Despesas', compact(['despesas']));
-    }
-
     public function criarDespesa(Request $request)
     {
         $id = Auth::user()->id;

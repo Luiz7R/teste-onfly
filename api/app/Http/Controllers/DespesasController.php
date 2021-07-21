@@ -19,13 +19,6 @@ class DespesasController extends Controller
 
             return $despesas;
         }
-
-        // if ( Auth::check() )
-        // {
-        //     $usuario = Auth::user();
-
-        //     return $usuario->despesas;
-        // }
     }
 
     public function criarDespesa(Request $request)
