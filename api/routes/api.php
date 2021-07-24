@@ -22,10 +22,10 @@ Route::get('http://localhost:8000/sanctum/csrf-cookie')->name('auth.sanctum');
 Route::post('/login', [LoginController::class, 'authenticate'])->name('auth.user');
 Route::get('/logout', [LoginController::class, 'logout'])->name('logout.user');
 Route::post('/registrar', [LoginController::class, 'registrar']);
-Route::post('/criarDespesa', [LoginController::class, 'criarDespesa'])->name('new-desp');
+Route::post('/criarDespesa', [DespesasController::class, 'criarDespesa'])->name('new-desp');
 Route::get('/getDespesas', [DespesasController::class, 'getDespesas']);
-Route::put('/updateDespesa', [LoginController::class, 'updateDespesa'])->name('update.desp');
-Route::delete('/deletarDespesa/{id}', [LoginController::class, 'deletarDespesa'])->name('del.desp');
+Route::put('/updateDespesa', [DespesasController::class, 'updateDespesa'])->name('update.desp');
+Route::delete('/deletarDespesa/{id}', [DespesasController::class, 'deletarDespesa'])->name('del.desp');
 Route::post('/uploads', [FileUploaderController::class, 'uploads']);
 Route::post('/uploadsFile', [FileUploaderController::class, 'handle']);
 

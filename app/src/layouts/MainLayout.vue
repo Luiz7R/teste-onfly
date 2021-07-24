@@ -14,7 +14,6 @@
         <q-toolbar-title>
           Quasar App
         </q-toolbar-title>
-
         <div>Quasar v{{ $q.version }}</div>
       </q-toolbar>
     </q-header>
@@ -92,7 +91,7 @@ const linksList = [
     caption: 'Community Quasar projects',
     icon: 'favorite',
     link: 'https://awesome.quasar.dev'
-  }
+  },
 ];
 
 import { defineComponent, ref } from 'vue'

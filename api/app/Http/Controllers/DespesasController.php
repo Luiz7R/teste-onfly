@@ -7,6 +7,7 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class DespesasController extends Controller
 {
@@ -23,40 +24,26 @@ class DespesasController extends Controller
 
     public function criarDespesa(Request $request)
     {
-        //$data = $request->only(['descricao', 'anexo', 'id_usuario', 'valor']);
-        $data = $request->all();
+        $id = Auth::user()->id;
 
-        if ( $request->hasFile('anexo'))
-        {
-             $destination_path = 'public/images/';
-             $anexo = $request->file('anexo');
-             $nomeAnexo = $anexo->getClientOriginalName();
-             
-             $data['anexo'] = $nomeAnexo;
-        }
-
+        $data = $request->only(['descricao', 'anexo', 'id_usuario', 'valor']);
         $data['data_criacao'] = Carbon::now();
+        $data['id_usuario'] = $id;
 
         Despesas::create($data);
 
-        return redirect()->route('home.page');
-    }
-    
-    public function getDespesa($id)
-    {
-        /*if ( Auth::check() )
-        {
-            $usuario = Auth::user();
-            $despesa = Despesas::where('id_usuario', $usuario->id)->findOrFail($id);
-
-            return compact('despesa');
-        }*/
-        return Despesas::findOrFail($id);
+        return true;
     }
 
     public function deletarDespesa($id)
     {
         $data = Despesas::find($id);
+
+        if ( $data->anexo != 'semimage.jpg' )
+        {
+             Storage::delete('public/images/'.$data->anexo);
+        }
+
         $data->delete();
 
         return true;
@@ -66,9 +53,14 @@ class DespesasController extends Controller
     {
         $update = Despesas::find($request->id);
 
-        $update->fill($request->all());
+        $update->descricao = $request->descricao;
+        $update->data_criacao = $request->data_criacao;
+        $update->anexo = $request->anexo;
+        $update->valor = $request->valor;
 
         $update->save();
+
+        return true;
     }
 
 }

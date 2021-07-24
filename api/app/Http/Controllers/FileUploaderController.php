@@ -62,5 +62,9 @@ class FileUploaderController extends Controller
 
                 return $nomeArquivoParaSalvar;
            }
+           else
+           {
+                $nomeArquivoParaSalvar = 'semimage.jpg'; 
+           }
     }
 }

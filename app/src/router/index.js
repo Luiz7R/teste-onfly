@@ -2,6 +2,7 @@ import { route } from 'quasar/wrappers'
 // import { createRouter } from 'vue-router'
 import { createRouter, createMemoryHistory, createWebHistory, createWebHashHistory } from 'vue-router'
 import routes from './routes'
+import { LocalStorage, Notify } from 'quasar'
 
 /*
  * If not building with SSR mode, you can
@@ -26,6 +27,32 @@ export default route(function (/* { store, ssrContext } */) {
         // quasar.conf.js -> build -> publicPath
         history: createHistory(process.env.MODE === 'ssr' ? void 0 : process.env.VUE_ROUTER_BASE)
   })
+
+    Router.beforeEach((to, from, next) => {
+        if ( to.matched.some(record => record.meta.autenticacao) )
+        {
+             if ( LocalStorage.getItem('dataUser') === null || LocalStorage.getItem('dataUser') === undefined ) 
+             {
+                  next({
+                    path: '/login'
+                  }) 
+                  Notify.create({
+                     icon: 'ion-close',
+                     color: 'negative',
+                     message: 'Error, Usuário Não está logado',
+                     actions: [{ icon: 'close', color: 'white' }]
+                  })
+             } 
+             else
+             {
+                 next() 
+             }
+        }
+        else
+        {
+            next()
+        }
+    })
 
     return Router
 })

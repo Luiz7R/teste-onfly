@@ -2,9 +2,20 @@ const routes = [
   {
     path: '/',
     component: () => import('layouts/MainLayout.vue'),
+    meta: {
+      autenticacao: true
+    },
     children: [
-      { path: '', component: () => import('pages/Index.vue') }
+      { path: '', component: () => import('pages/Dashboard.vue') }
     ]
+  },
+  {
+      path: '/login',
+      component: () => import('layouts/MainLayout.vue'),
+      children: [
+       // { path: '', component: () => import('pages/Dashboard.vue') }
+        { path: '', component: () => import('pages/Index.vue') }
+      ]
   },
 
   // Always leave this as last one,
