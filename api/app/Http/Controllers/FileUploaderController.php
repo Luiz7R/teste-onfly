@@ -67,4 +67,25 @@ class FileUploaderController extends Controller
                 $nomeArquivoParaSalvar = 'semimage.jpg'; 
            }
     }
+    public function handleUpdate (Request $request) 
+    {
+            $this->validate($request,[
+                'anexo' => 'required|image|max:1999' 
+            ]);
+
+            if ( $request->hasFile('anexo') )
+            {
+                $nomeArquivoComExt = $request->file('anexo')->getClientOriginalName();
+
+                $nomeArquivo = pathinfo($nomeArquivoComExt, PATHINFO_FILENAME);
+
+                $extensao = $request->file('anexo')->getClientOriginalExtension();
+
+                $nomeArquivoParaSalvar = $nomeArquivo.'_'.time().'.'.$extensao;
+
+                $path = $request->file('anexo')->storeAs('public/images', $nomeArquivoParaSalvar);
+
+                return $nomeArquivoParaSalvar;
+           }
+    }    
 }

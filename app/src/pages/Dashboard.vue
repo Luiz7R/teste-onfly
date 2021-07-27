@@ -4,14 +4,16 @@
         <q-btn round flat icon="logout" class="float-right" @click="logout" color="grey-8" v-close-popup>Logout</q-btn>   
     </div>        
     <div class="row">       
-        <div class="offset-3">      
-            <div class="col-12 col-md-auto">
-                <h4>Bem Vindo, {{ dataUser.name }} !</h4>
+        <div class="offset-3 col-xs-10 col-md-7 col-lg-6">      
+            <div class="">
+                <h5>Bem Vindo, {{ dataUser.name }} !</h5>
                 <div style="margin-bottom: 20px;">
-                    <h4>Minhas Despesas</h4>              
+                    <q-card-section class="bg-primary text-white" style="margin-bottom: 2%; border-radius: 5px;">
+                        <div class="text-h6">Minhas Despesas</div>
+                    </q-card-section>                            
                     <q-btn color="primary" style="margin-left: 20px;" dense @click="modalcriarDespesa">Criar Nova Despesa</q-btn>
                 </div>                 
-                <div class="" style="max-width: 57vw;">
+                <div class="col-xs-1" style="">
                     <q-table
                     dense
                     title="Despesas"
@@ -88,10 +90,19 @@
                                     </q-item-section>
                                     </q-item>
                                     <q-item>
+                                <q-item>
                                     <q-item-section>
-                                        <q-item-label class="q-pb-xs">Anexo</q-item-label>
-                                        <q-input dense outlined v-model="DespesasEditar.anexo" />
+                                        <q-uploader
+                                        style="max-width: 300px"
+                                        label="Anexo"
+                                        :factory="UploadAnexoEditar"
+                                        max-files="1"
+                                        max-file-size="1048576"
+                                        accept=".jpg, image/*"
+                                        @rejected="onRejected"
+                                        />                               
                                     </q-item-section>
+                                </q-item>
                                     </q-item>
                                     <q-item>
                                     <q-item-section>
@@ -153,7 +164,7 @@
                         </q-card>
                     </q-dialog>                                                                                
                 </div> 
-                <q-dialog v-model="criar_despesa">
+                <q-dialog ref="dialog" v-model="criar_despesa">
                     <q-card style="width: 600px; max-width: 60vw;">
                         <q-card-section>
                                 <q-btn round flat dense icon="close" class="float-right" color="grey-8" v-close-popup></q-btn>
@@ -163,12 +174,14 @@
                         <q-separator inset></q-separator>
 
                         <q-card-section class="q-pt-none">
-                            <q-form class="q-gutter-md">
+                            <q-form @submit.prevent.stop="onSubmit" class="q-gutter-md">
                                 <q-list>
                                 <q-item>
                                     <q-item-section>
                                     <q-item-label class="q-pb-xs">Descrição</q-item-label>
-                                    <q-input dense outlined v-model="DespesaCriar.descricao" />
+                                    <q-input dense outlined v-model="DespesaCriar.descricao" ref="descricaoRef"
+                                            :rules="[val => !!val || 'Descrição está vazio']"
+                                    />
                                     </q-item-section>
                                 </q-item>
                                 <q-item>
@@ -187,7 +200,9 @@
                                 <q-item>
                                     <q-item-section>
                                     <q-item-label class="q-pb-xs">Valor</q-item-label>
-                                    <q-input dense outlined v-model="DespesaCriar.valor" />                            
+                                    <q-input dense outlined v-model="DespesaCriar.valor" ref="valorRef" 
+                                           :rules="[val => !!val || 'Valor está vazio']" 
+                                    />                            
                                     </q-item-section>
                                 </q-item>
                                 </q-list>
@@ -311,7 +326,10 @@ export default defineComponent({
            },
            imagePath: {
               anexo: '',
-           },           
+           },  
+           imagePathUpdateAnexo: {
+               anexo: '',
+           }         
         }
     },
     methods: { 
@@ -339,9 +357,17 @@ export default defineComponent({
           axios.get('http://localhost:8000/sanctum/csrf-cookie').then((res) => {
                 axios.post('http://localhost:8000/api/criarDespesa', this.DespesaCriar).then(res => {
                     this.getDespesas()
+                    this.DespesaCriar.descricao = null
+                    this.DespesaCriar.data_criacao = null
+                    this.DespesaCriar.anexo = null
+                    this.DespesaCriar.valor = null
                 })
           })   
-      },         
+      },    
+      onSubmit () {
+          descricaoRef.value.validate()
+          valorRef.value.validate()
+      },  
       anexo (despesa)
       {
           const urlImages = ref('http://localhost:8000/storage/images/')
@@ -357,7 +383,7 @@ export default defineComponent({
         this.DespesasEditar.descricao = despesa.descricao
         this.DespesasEditar.data_criacao = despesa.data_criacao
         this.DespesasEditar.dataFormatada = moment(despesa.data_criacao).format('DD/MM/YYYY')
-        this.DespesasEditar.anexo = despesa.anexo
+        this.DespesasEditar.anexo = this.imagePathUpdateAnexo.anexo
         this.DespesasEditar.valor = despesa.valor
       }, 
       deletar (id) {
@@ -365,6 +391,7 @@ export default defineComponent({
         this.DespesasEditar.id = id
       },        
       updateDespesa () {
+          this.DespesasEditar.anexo = this.imagePathUpdateAnexo.anexo 
           axios.get('http://localhost:8000/sanctum/csrf-cookie').then((res) => {
                 axios.put('http://localhost:8000/api/updateDespesa', this.DespesasEditar).then(res => {
                     console.log(res)
@@ -397,6 +424,20 @@ export default defineComponent({
               })
           })    
       },
+      UploadAnexoEditar(files) 
+      {
+          let fileDataUp = new FormData()
+          //fileData.anexo = this.file_path.name
+
+          fileDataUp.append('anexo', files[0]);
+
+          axios.get('http://localhost:8000/sanctum/csrf-cookie').then((res) => {               
+              axios.post('http://localhost:8000/api/uploadsFileUpdate', fileDataUp, { headers: { 'Content-Type': 'multipart/form-data' } } ).then((res) => {
+                  this.imagePathUpdateAnexo.anexo = res.data
+                  this.$q.notify({ type: 'positive', message: `Imagem Adicionada` })
+              })
+          })    
+      },      
       onRejected (rejectedEntries) {
             // Notify plugin needs to be installed
             // https://quasar.dev/quasar-plugins/notify#Installation

@@ -26,8 +26,8 @@ Route::post('/criarDespesa', [DespesasController::class, 'criarDespesa'])->name(
 Route::get('/getDespesas', [DespesasController::class, 'getDespesas']);
 Route::put('/updateDespesa', [DespesasController::class, 'updateDespesa'])->name('update.desp');
 Route::delete('/deletarDespesa/{id}', [DespesasController::class, 'deletarDespesa'])->name('del.desp');
-Route::post('/uploads', [FileUploaderController::class, 'uploads']);
 Route::post('/uploadsFile', [FileUploaderController::class, 'handle']);
+Route::post('/uploadsFileUpdate', [FileUploaderController::class, 'handleUpdate']);
 
 Route::get('/test', function() {
     return auth()->user();
